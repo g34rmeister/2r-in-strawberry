@@ -15,11 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-from our_api import views
+from django.urls import path
+from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/login/', views.LoginView.as_view(), name='api-login'),
-    path('api/plantnet/', include('plantnet.urls'))
+    path('getrandomplant/', views.get_random_plant, name='get-random-plant')
 ]
