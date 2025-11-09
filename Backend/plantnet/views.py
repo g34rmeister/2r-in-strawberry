@@ -57,7 +57,7 @@ class GetRandomPlantView(APIView):
         try:
             UserChallenge.objects.update_or_create(
                 user=user, 
-                defaults={'current_challaenge': random_plant}
+                defaults={'current_challange': random_plant}
             )
         except Exception as e:
             print(f"Error updating challenge: {e}")
@@ -91,7 +91,7 @@ class GetChallengeView(APIView):
 
         try:
             user_challenge_record = user.current_challenge_record
-            current_plant = user_challenge_record.current_challenge
+            current_plant = user_challenge_record.current_challange
             
             if current_plant is None:
                 return Response(empty_challenge_response, status=status.HTTP_200_OK)
