@@ -298,3 +298,116 @@ button {
 button{
   border-radius:10px;
 }
+
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+/* History Page Styles */
+.history-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-header {
+  padding: 20px 20px;
+  margin: 0px 0px;
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  background-color:#749a02;
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid rgb(16, 122, 48);
+}
+
+.history-cards-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.5) transparent;
+}
+
+/* Custom Scrollbar for Webkit browsers */
+.history-cards-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.history-cards-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.history-cards-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.history-cards-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.history-card-item {
+  margin-bottom: 20px;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.history-card-item:hover {
+  transform: translateY(-5px);
+  transition: transform 0.3s ease;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .history-header {
+    font-size: 1.5rem;
+    padding: 20px 15px;
+  }
+
+  .history-cards-wrapper {
+    padding: 15px;
+  }
+
+  .history-card-item {
+    margin-bottom: 15px;
+  }
+}
+
+/* Smooth transitions for all elements */
+* {
+  transition: all 0.3s ease;
+}
+
+.history-cards-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.5) transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
