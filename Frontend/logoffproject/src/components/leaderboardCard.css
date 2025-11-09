@@ -1,0 +1,88 @@
+.user-rank-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 12px;
+    margin: 0.5rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.user-rank-item.rank-1 {
+    background: linear-gradient(135deg, #FFD700 0%, #FFF7D6 100%);
+}
+
+.user-rank-item.rank-2 {
+    background: linear-gradient(135deg, #C0C0C0 0%, #F5F5F5 100%);
+}
+
+.user-rank-item.rank-3 {
+    background: linear-gradient(135deg, #CD7F32 0%, #FDE6D0 100%);
+}
+
+.rank-1 .rank-circle {
+    background-color: #FFD700;
+    color: white;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.rank-2 .rank-circle {
+    background-color: #C0C0C0;
+    color: white;
+    box-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+}
+
+.rank-3 .rank-circle {
+    background-color: #CD7F32;
+    color: white;
+    box-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+}
+
+
+
+.user-rank-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.rank-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-weight: bold;
+}
+
+
+.user-info {
+    flex: 1;
+    margin-right: 1rem;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.user-points {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.points-number {
+    font-weight: 600;
+    color: #354b5e;
+}
+
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
