@@ -1,1 +1,23 @@
+#venv for python
 /venv
+#excldue __pycache__
+__pycache__/
+
+# Dependencies
+/node_modules
+
+# Vite build output
+/dist
+
+# Log files
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env*
+!.env.example
+
+# Editor directories
+.vscode
+.idea
