@@ -7,7 +7,7 @@ User = get_user_model()
 class CardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Card
-        fields = ['id', 'name', 'image', 'location_found', 'description', 'user']
+        fields = ['id', 'name', 'image', 'location_found', 'description', 'user', 'date', 'difficulty']
         read_only_fields = ['id']
 
 
@@ -31,7 +31,7 @@ class GroupMembershipLeaderboardSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendGroupMembership
         # Includes the group-specific score and the member details
-        fields = ['member', 'score']
+        fields = ['member', 'score', 'join_date']
         # The ordering is already defined in the FriendGroupMembership model Meta
 
 
