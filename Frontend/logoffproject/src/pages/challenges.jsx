@@ -1,5 +1,6 @@
 import Card from "../components/card";
 import api from "../components/api";
+<<<<<<< HEAD
 // 1. Combined React imports into one line
 import React, { useEffect, useState, useRef } from "react";
 
@@ -28,12 +29,33 @@ const Challenges = () => {
                 const response = await api.get('/plantnet/getchallenge/');
                 setChallenge(response.data);
             } catch (error) {
+=======
+import { useEffect, useState } from "react";
+
+const difficultyStars = {
+    1: '★',
+    2: '★★',
+    3: '★★★'
+};
+
+const Challenges = ({imgUrl,title,text}) => {
+    const [challenge, setChallenge] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchChallenge = async () => {
+            try {
+                const response = await api.get('/plantnet/getchallenge/');
+                setChallenge(response.data);
+            } catch(error) {
+>>>>>>> cf2c836 (merge)
                 console.error("Error fetching challenge", error);
             } finally {
                 setIsLoading(false);
             };
         };
         fetchChallenge();
+<<<<<<< HEAD
     }, []);
 
     const handleFileSubmit = async (event) => {
@@ -86,6 +108,9 @@ const Challenges = () => {
             </div>
         );
     }
+=======
+    }, [])
+>>>>>>> cf2c836 (merge)
 
     if (!challenge || !challenge['scientific-name']) {
         return (
@@ -101,6 +126,7 @@ const Challenges = () => {
     return (
         <div className="container">
             <Card
+<<<<<<< HEAD
                 imgUrl={challenge['image-url']}
                 name={challenge['common-name']}
                 rarity={starRating}
@@ -137,6 +163,14 @@ const Challenges = () => {
 
             {/* 4. Added a place to show the submission error */}
             {submitError && <p style={{ color: 'red', marginTop: '10px' }}>{submitError}</p>}
+=======
+             imgUrl={challenge['image-url']} 
+             name = {challenge['common-name']}
+             rarity={starRating}
+             title={challenge['scientific-name']}
+             text={challenge['description']}
+             />
+>>>>>>> cf2c836 (merge)
         </div>
     );
 }
