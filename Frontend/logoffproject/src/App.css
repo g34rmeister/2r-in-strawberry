@@ -1,8 +1,16 @@
+@import url('https://fonts.googleapis.com/css?family=Happy+Monkey');
+h2, p {
+    font-family: 'Happy Monkey';
+    color: #383333;
+}
 #root {
-  max-width: 1280px;
+  max-width: 50vw;
+  min-width: 15vw;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background-color:#F0F0F1;
+  min-height: 80vh;
 }
 .navbar {
   display: flex;
@@ -60,4 +68,30 @@
 
 .read-the-docs {
   color: #888;
+}
+
+.droppable {
+  display: flex;
+  flex-direction: column;
+  margin: 2rem 0;
+  font-family: 'Happy Monkey';
+  color:#ffffff;
+}
+
+label {
+  font-weight: 600;
+  color: #ffffff;
+  font-family: 'Happy Monkey';
+}
+
+select {
+  width: 150px;
+  align-self: center;
+}
+button {
+  width: 150px;
+  height: 1.5rem;
+  font-family: 'Happy Monkey';
+  text-align: center;
+  line-height: 0;
 }

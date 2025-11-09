@@ -3,6 +3,7 @@ import Droppable from '../components/droppable';
 import { useState, useEffect } from 'react';
 import Navbar from '../components/navbar';
 
+
 function StartChallenge() {
     const [username, setUsername] = useState('');
     const [choice, setChoice] = useState('');
@@ -14,20 +15,17 @@ function StartChallenge() {
     }, []);
 
     const handleChange = (e) => setChoice(e.target.value);
-
     return(
         <>
-            <h1>Hi {username || 'Guest'},</h1>
-            <p>start a challenge?</p>
+            <h2>Welcome, {username || 'Guest'}!</h2>
+            <p>Start a challenge?</p>
             <Droppable
-                    label="Difficulty: "
-                    options={[
+                label="Difficulty"
+                options={[
                     { label: '★', value: 'easy' },
-                    { label: '★★', value: 'mediumeasy' },
-                    { label: '★★★', value: 'medium' },
-                    { label: '★★★★', value: 'mediumhard' },
-                    { label: '★★★★★', value: 'hard' },
-                    ]}
+                    { label: '★★', value: 'medium' },
+                    { label: '★★★', value: 'hard' }
+                ]}
                 value={choice}
                 onChange={handleChange}
             />
