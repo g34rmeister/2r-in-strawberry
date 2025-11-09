@@ -2,6 +2,12 @@ import Card from "../components/card";
 import api from "../components/api";
 import { useEffect, useState } from "react";
 
+const difficultyStars = {
+    1: '★',
+    2: '★★',
+    3: '★★★'
+};
+
 const Challenges = ({imgUrl,title,text}) => {
     const [challenge, setChallenge] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -29,12 +35,14 @@ const Challenges = ({imgUrl,title,text}) => {
         );
     }
 
+    const starRating = difficultyStars[challenge['dificulty']] || 'N/A';
+
     return (
         <div className="container">
             <Card
              imgUrl={challenge['image-url']} 
              name = {challenge['common-name']}
-             rarity = "★★"
+             rarity={starRating}
              title={challenge['scientific-name']}
              text={challenge['description']}
              />
