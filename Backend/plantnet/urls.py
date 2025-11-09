@@ -22,4 +22,5 @@ urlpatterns = [
     path('getrandomplant/', views.get_random_plant, name='get-random-plant'),
     path('identify/', views.identifyplant, name='identify'),
     path('validateplant/', views.validate_plant, name='validateplant'),
+    path('speciesinfo/', views.get_species_info, name='species-info'),
 ]

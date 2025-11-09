@@ -7,6 +7,8 @@ from django.views.decorators.http import require_POST
 import json
 import re
 import base64
+from .models import Plant
+from django.shortcuts import render, get_object_or_404
 
 # Create your views here.
 plantnet_api = "https://my-api.plantnet.org/v2/"
@@ -189,3 +191,40 @@ def validate_plant(request):
         'correct': False
     }
     return JsonResponse(response, status=200, safe=False)
+
+@csrf_exempt
+@require_POST
+def get_species_info(request):
+    try:
+        body = request.body
+
+        data = json.loads(body)
+
+        scientific_name = data.get('scientific-name', None)
+
+        if not scientific_name:
+            return JsonResponse({"error": "Missing 'scientific-name' field"}, status=400)
+        
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "invalid JSON"}, status=400)
+    print("retrieving plant data")
+    print(scientific_name)
+    plant = get_object_or_404(
+        Plant,
+        scientific_name__iexact=scientific_name
+    )
+
+    print("got plant")
+    print(plant.description)
+
+    result = {
+        'scientific-name': scientific_name,
+        'description': plant.description,
+        'common-name': plant.common_name,
+        'dificulty': plant.dificulty,
+        'image-url': plant.image.url
+    }
+
+    print(result)
+
+    return JsonResponse(result, status=200, safe=False)
