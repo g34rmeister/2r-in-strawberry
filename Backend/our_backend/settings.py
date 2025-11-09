@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'our_api',
     'rest_framework',
     'corsheaders',
+    'userdata',
+    'friendship',
+    'nested_admin',
 ]
 
 MIDDLEWARE = [
@@ -84,6 +87,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = 'userdata.CustomUser'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
