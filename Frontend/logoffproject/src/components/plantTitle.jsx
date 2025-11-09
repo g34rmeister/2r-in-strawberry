@@ -1,9 +1,9 @@
-const PlanTitle = ({title}) => {
+const PlantTitle = ({title}) => {
     return (
-        <div className="card-title">
+        <div className="card-title" style = {{color: "#333333"}}>
             {title}
         </div>
     )
 }
 
-export default PlanTitle;
+export default PlantTitle;
