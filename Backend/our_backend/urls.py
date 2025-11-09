@@ -23,7 +23,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', views.LoginView.as_view(), name='api-login'),
-    path('api/plantnet/', include('plantnet.urls'))
+    path('api/plantnet/', include('plantnet.urls')),
     path('api/userdata/', include('userdata.urls'))
 ]
 
