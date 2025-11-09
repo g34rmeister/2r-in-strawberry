@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'our_api',
     'rest_framework',
+    "rest_framework_simplejwt",
     'corsheaders',
     'plantnet',
     'userdata',
@@ -63,7 +65,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -142,10 +144,43 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# This allows the browser to send cookies to your backend
+# 1. ALLOWED ORIGINS: Only list the frontend domains you trust.
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    "http://localhost:5173", # Local dev environment (npm run dev)
+    "http://127.0.0.1:5173", # Local dev fallback
+    "http://10.0.0.1:5173", # <--- **Crucial for non-localhost**
+    # Include any other deployed domains here.
 ]
 
-# This allows the browser to send cookies to your backend
+# 2. ALLOW CREDENTIALS: Crucial for sending session/CSRF cookies.
 CORS_ALLOW_CREDENTIALS = True
+
+# 3. CSRF TRUSTED ORIGINS: Tell Django's CSRF protection to trust these domains
+# for POST requests (which you are doing with authentication).
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://10.0.0.1:5173", # <--- **Must match your frontend URL**
+]
+
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ( #tells django that the primary way it should identify a user is by looking for JWT req
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    #Set default access rule. 
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",#Means by default no one can access any API endpoints without login
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
