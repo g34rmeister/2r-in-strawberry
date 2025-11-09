@@ -65,6 +65,7 @@ const leaderboardCard = () => {
             />
           </div>
         ))}
+        {/*Friend Leaderboard*/}
       </div>
     </div>
   );
