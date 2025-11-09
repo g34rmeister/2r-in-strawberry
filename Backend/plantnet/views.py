@@ -75,6 +75,16 @@ def get_challenge(request):
     try:
         user_challenge_record=user.current_challenge_record
         current_plant=user_challenge_record.current_challenge
+        if current_plant is None:
+            empty_challenge_response = {
+                'scientific-name': None,
+                'description': None,
+                'common-name': None,
+                'dificulty': None,
+                'image-url': None
+            }
+            return JsonResponse(empty_challenge_response, status=200, safe=False)
+
         result = {
             'scientific-name': current_plant.scientific_name,
             'description': current_plant.description,
