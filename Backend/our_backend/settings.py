@@ -11,10 +11,21 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+MEDIA_ROOT = BASE_DIR / 'media'
+
+MEDIA_URL = '/media/'
+
+#load the .env for api
+load_dotenv(os.path.join(BASE_DIR, '.env'))
+
+#grab the plantnet key
+PLANTNET_API_KEY = os.getenv('PLANTNET_API_KEY')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -40,6 +51,7 @@ INSTALLED_APPS = [
     'our_api',
     'rest_framework',
     'corsheaders',
+    'plantnet',
     'userdata',
     'friendship',
     'nested_admin',
