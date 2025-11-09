@@ -14,14 +14,24 @@ class CustomUser(AbstractUser):
         return self.username
 
 
-# this doubles as the card info as well
+class Difficulty(models.TextChoices):
+    EASY = "EASY", _("EASY")
+    MID = "MID", _("MID")
+    HARD = "HARD", _("HARD")
+
+
 class Card(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, related_name='card_owner')
     name = models.CharField(max_length=200)
     image = models.ImageField(upload_to="Images/")
     location_found = models.CharField(max_length=100)
     description = models.CharField(max_length=500)
-    difficulty = models.CharField(max_length=100, default="Hard")
+    difficulty = models.CharField(
+        max_length=5,
+        choices=Difficulty,
+        default=Difficulty.MID
+    )
+    date = models.DateField(null=True)
 
     def __str__(self):
         return f"{self.name}"
@@ -44,6 +54,7 @@ class FriendGroupMembership(models.Model):
     
     # The new feature to store the score for this user in this group
     score = models.IntegerField(_("Member Score"), default=0)
+    join_date = models.DateTimeField(null=True)
     
     class Meta:
         # Ensures a user can only be added to a group once
