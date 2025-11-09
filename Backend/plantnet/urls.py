@@ -19,9 +19,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('getrandomplant/', views.get_random_plant, name='get-random-plant'),
+    path('getrandomplant/', views.GetRandomPlantView.as_view(), name='get-random-plant'),
     path('identify/', views.identifyplant, name='identify'),
     path('validateplant/', views.validate_plant, name='validateplant'),
     path('speciesinfo/', views.get_species_info, name='species-info'),
-    path('getchallenge/', views.get_challenge, name='get-challenge'),
+    path('getchallenge/', views.GetChallengeView.as_view(), name='get-challenge'),
 ]
