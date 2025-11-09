@@ -4,7 +4,7 @@
     padding: 1rem;
     background-color: white;
     border-radius: 12px;
-    margin: 0.5rem 0;
+    margin: 1rem 0.5rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease;
 }
