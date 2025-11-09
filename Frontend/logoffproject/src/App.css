@@ -113,6 +113,36 @@ button {
     padding: 10px 15px;
   }
 }
+
+.container{
+  width: 100%;
+  align-self: center;
+}
+.card-container {
+  width: 40%;
+  max-width: 1000px;
+  overflow: hidden;
+  align-self: center;
+}
+.card-image {
+  width: 100%;
+  object-fit: cover;
+  border-radius: 50px;
+  align-self: center;
+}
+.image-box img{
+  width: 100%;
+}
+.card-description {
+  padding: 8px 12px;
+  font-size: 1.1rem;
+}
+.title-description-container {
+  color: black;
+  background-color: #e7fda3;
+  border-radius: 5px;
+  padding: 1%;
+}
 @media screen and (max-width: 500px) {
   .navbar {
     padding: 6px;
@@ -122,6 +152,9 @@ button {
     size: contain;
     align-self: center;
     margin: 1rem 1rem;
+  }
+  .card-image img{
+    width: 65%;
   }
 }
 
@@ -185,4 +218,79 @@ button {
   line-height: 0;
   align-self: center;
 
+}
+.card-container {
+  width: 300px;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  background-color: #95c99d;
+  border: 2px solid #111111;
+  margin: 3px;
+}
+.card-container p, h1, h2, h3{
+  color:#333333;
+  font-family:'Happy Monkey';
+  margin: 0px;
+  padding: 0px;
+}
+
+.info-container {
+  border-radius: 10px;
+  background-color: rgba(143, 121, 61, 0.373);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 12px;
+}
+
+.card-image img {
+  width: 100%;
+  border-radius: 8px;
+  padding: 0px;
+  object-fit: cover;
+  border:#023715 2px solid;
+}
+
+.card-name {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1rem;
+  padding:0px;
+  margin:0px;
+  font-family:'Happy Monkey';
+}
+
+.card-stats {
+  display: flex;
+  justify-content: space-around;
+}
+.card-stats p{
+  font-size: 0.9rem;
+  padding: 0px;
+  margin: 0px;
+  font-family:'Happy Monkey';
+}
+.card-title {
+  text-align: center;
+  font-weight: 500;
+  font-family:'Happy Monkey';
+}
+
+.card-description {
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 4px 0;
+  font-family:'Happy Monkey';
+}
+
+.card-date {
+  font-size: 0.8rem;
+  text-align: center;
+  color: #666;
+  font-family:'Happy Monkey';
 }
