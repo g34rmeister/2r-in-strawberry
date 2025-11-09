@@ -5,6 +5,7 @@ import './App.css'
 import { Routes, Route, Link } from 'react-router-dom';
 import Login from "../src/pages/login"
 import StartChallenge from './pages/start-challenge';
+import LeaderboardCardExample from './pages/leaderboardCardExample';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" element={<Login/>} />
         <Route path="/start-challenge" element={<StartChallenge/>} />
         <Route path="/" element={<Login />} />
+        <Route path="/leaderboardcardexample" element={<LeaderboardCardExample/>} />
       </Routes>
     </>
   )
