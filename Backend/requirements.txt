@@ -1,0 +1,2 @@
+django-friendship=1.9.6
+django-nested-admin=4.1.6
