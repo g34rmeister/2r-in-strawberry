@@ -23,4 +23,5 @@ urlpatterns = [
     path('identify/', views.identifyplant, name='identify'),
     path('validateplant/', views.validate_plant, name='validateplant'),
     path('speciesinfo/', views.get_species_info, name='species-info'),
+    path('getchallenge/', views.get_challenge, name='get-challenge'),
 ]

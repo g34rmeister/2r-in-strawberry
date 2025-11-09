@@ -3,12 +3,13 @@ import requests
 from django.http import JsonResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 import json
 import re
 import base64
-from .models import Plant
+from .models import Plant, UserChallenge
 from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 plantnet_api = "https://my-api.plantnet.org/v2/"
@@ -19,9 +20,10 @@ dificulties = {
     'hard': 3
 }
 
-@csrf_exempt
 @require_POST
+@login_required
 def get_random_plant(request):
+    user = request.user
     try:
         body = request.body
 
@@ -51,6 +53,8 @@ def get_random_plant(request):
     except Exception as e:
         return JsonResponse({"error": "Internal database error"}, status=500)
     
+    UserChallenge.objects.update_or_create(user=user, defaults={'current_challaenge': random_plant})
+    
     result = {
         'scientific-name': random_plant.scientific_name,
         'description': random_plant.description,
@@ -62,7 +66,27 @@ def get_random_plant(request):
     print(result)
 
     return JsonResponse(result, status=200, safe=False)
-    
+
+@login_required
+@require_GET
+def get_challenge(request):
+    user = request.user
+
+    try:
+        user_challenge_record=user.current_challenge_record
+        current_plant=user_challenge_record.current_challenge
+        result = {
+            'scientific-name': current_plant.scientific_name,
+            'description': current_plant.description,
+            'common-name': current_plant.common_name,
+            'dificulty': current_plant.dificulty,
+            'image-url': current_plant.image.url if current_plant.image else None
+        }
+        return JsonResponse(result, status=200, safe=False)
+
+    except Exception as e:
+        # General error handling
+        return JsonResponse({"error": "An internal error occurred."}, status=500)
 
     
 def getimageresults(request):

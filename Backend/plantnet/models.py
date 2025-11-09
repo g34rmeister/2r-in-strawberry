@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 
 # Create your models here.
 class Plant(models.Model):
@@ -20,3 +21,16 @@ class Plant(models.Model):
 
     def __str__(self):
         return self.scientific_name
+    
+
+User = get_user_model()
+
+class UserChallenge(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='current_challenge_record')
+    current_challange=models.ForeignKey(Plant, on_delete=models.CASCADE, related_name='current_challenge')
+
+    #track when challange set
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s challange: {self.current_challange.scientific_name}"
