@@ -294,3 +294,7 @@ button {
   color: #666;
   font-family:'Happy Monkey';
 }
+
+button{
+  border-radius:10px;
+}

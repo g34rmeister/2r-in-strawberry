@@ -5,6 +5,7 @@ import Login from "../src/pages/login"
 import StartChallenge from './pages/start-challenge';
 import LeaderboardCardExample from './pages/leaderboardCardExample';
 import Challenges from './pages/challenges';
+import History from './pages/history';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -17,6 +18,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/leaderboardcardexample" element={<LeaderboardCardExample/>} />
         <Route path="/challenges" element={<Challenges/>} />
+        <Route path="/history" element={<History/>} />
       </Routes>
     </>
   )
