@@ -10,6 +10,11 @@ import base64
 from .models import Plant, UserChallenge
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.exceptions import ObjectDoesNotExist
 
 # Create your views here.
 plantnet_api = "https://my-api.plantnet.org/v2/"
@@ -20,84 +25,92 @@ dificulties = {
     'hard': 3
 }
 
-@require_POST
-@login_required
-def get_random_plant(request):
-    user = request.user
-    try:
-        body = request.body
+# --- NEW GetRandomPlantView ---
+class GetRandomPlantView(APIView):
+    permission_classes = [IsAuthenticated] # This will check for the Bearer token
 
-        data = json.loads(body)
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        data = request.data # DRF parses the JSON for you
 
         difficulty = data.get('difficulty', None)
-
         if not difficulty:
-            return JsonResponse({"error": "Missing 'scientific-name' field"}, status=400)
+            # Note: You probably meant "Missing 'difficulty' field"
+            return Response({"error": "Missing 'difficulty' field"}, status=status.HTTP_400_BAD_REQUEST)
         
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "invalid JSON"}, status=400)
-    
-    level_id=dificulties.get(difficulty)
+        level_id = dificulties.get(difficulty)
+        if not level_id:
+            return Response({'error': "Invalid level"}, status=status.HTTP_400_BAD_REQUEST)
 
-    if not level_id:
-        return JsonResponse({'error': "Invalid level"},status=400)
-    
-    #get random plant inc ategory
-
-    try:
-        plants_in_level = Plant.objects.filter(dificulty=level_id)
-
-        if not plants_in_level.exists():
-            return JsonResponse({"error": f"No plants for dificulty"}, status=404)
-        random_plant = plants_in_level.order_by('?').first()#find random plant
-    except Exception as e:
-        return JsonResponse({"error": "Internal database error"}, status=500)
-    
-    UserChallenge.objects.update_or_create(user=user, defaults={'current_challaenge': random_plant})
-    
-    result = {
-        'scientific-name': random_plant.scientific_name,
-        'description': random_plant.description,
-        'common-name': random_plant.common_name,
-        'dificulty': random_plant.dificulty,
-        'image-url': random_plant.image.url
-    }
-
-    print(result)
-
-    return JsonResponse(result, status=200, safe=False)
-
-@login_required
-@require_GET
-def get_challenge(request):
-    user = request.user
-
-    try:
-        user_challenge_record=user.current_challenge_record
-        current_plant=user_challenge_record.current_challenge
-        if current_plant is None:
-            empty_challenge_response = {
-                'scientific-name': None,
-                'description': None,
-                'common-name': None,
-                'dificulty': None,
-                'image-url': None
-            }
-            return JsonResponse(empty_challenge_response, status=200, safe=False)
-
+        try:
+            plants_in_level = Plant.objects.filter(dificulty=level_id)
+            if not plants_in_level.exists():
+                return Response({"error": f"No plants for difficulty"}, status=status.HTTP_404_NOT_FOUND)
+            
+            random_plant = plants_in_level.order_by('?').first()
+            
+        except Exception as e:
+            print(f"Error finding plant: {e}")
+            return Response({"error": "Internal database error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # --- Update the user's challenge ---
+        try:
+            UserChallenge.objects.update_or_create(
+                user=user, 
+                defaults={'current_challange': random_plant}
+            )
+        except Exception as e:
+            print(f"Error updating challenge: {e}")
+            return Response({"error": "Could not update user challenge"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # --- Return the new plant details ---
         result = {
-            'scientific-name': current_plant.scientific_name,
-            'description': current_plant.description,
-            'common-name': current_plant.common_name,
-            'dificulty': current_plant.dificulty,
-            'image-url': current_plant.image.url if current_plant.image else None
+            'scientific-name': random_plant.scientific_name,
+            'description': random_plant.description,
+            'common-name': random_plant.common_name,
+            'dificulty': random_plant.dificulty,
+            'image-url': random_plant.image.url if random_plant.image else None
         }
-        return JsonResponse(result, status=200, safe=False)
+        return Response(result, status=status.HTTP_200_OK)
 
-    except Exception as e:
-        # General error handling
-        return JsonResponse({"error": "An internal error occurred."}, status=500)
 
+# --- NEW GetChallengeView ---
+class GetChallengeView(APIView):
+    permission_classes = [IsAuthenticated] # This will check for the Bearer token
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+
+        empty_challenge_response = {
+            'scientific-name': None,
+            'description': None,
+            'common-name': None,
+            'dificulty': None,
+            'image-url': None
+        }
+
+        try:
+            user_challenge_record = user.current_challenge_record
+            current_plant = user_challenge_record.current_challange
+            
+            if current_plant is None:
+                return Response(empty_challenge_response, status=status.HTTP_200_OK)
+
+            result = {
+                'scientific-name': current_plant.scientific_name,
+                'description': current_plant.description,
+                'common-name': current_plant.common_name,
+                'dificulty': current_plant.dificulty,
+                'image-url': current_plant.image.url if current_plant.image else None
+            }
+            return Response(result, status=status.HTTP_200_OK)
+
+        except ObjectDoesNotExist:
+            return Response(empty_challenge_response, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}") 
+            return Response({"error": "An internal error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 def getimageresults(request):
     organ = request.POST.get('organs', 'auto')#tell plantnet to detect what we are sending

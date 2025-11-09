@@ -1,7 +1,7 @@
 const ImageBox = ({imgUrl}) => {
     return (
         <div className="image-box">
-            <img src={imgUrl}
+            <img src={`http://localhost:8000${imgUrl}`}
             alt="Live Oak Tree picture" />
         </div>
     )

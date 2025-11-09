@@ -1,19 +1,50 @@
 import Card from "../components/card";
 import api from "../components/api";
+import { useEffect, useState } from "react";
+
+const difficultyStars = {
+    1: '★',
+    2: '★★',
+    3: '★★★'
+};
 
 const Challenges = ({imgUrl,title,text}) => {
-    imgUrl = !imgUrl ? "https://scontent-dfw5-2.xx.fbcdn.net/v/t39.30808-6/476148433_1167612378274157_7142023286726290425_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=833d8c&_nc_ohc=Obsy9c9Xd7cQ7kNvwEX2H4a&_nc_oc=Adm67Qd9u95Ncyqny24wkL9bOs-y-41z6CiED6j7JdwgWzdIR3QEqSqpbWcDLU-UtIBjnpyJNVWx5KOTJUdJ4y73&_nc_zt=23&_nc_ht=scontent-dfw5-2.xx&_nc_gid=tHgObA4Dgj61ge3Cq5UlQQ&oh=00_AfizVNfwafVE8j5_OFtbQXZwP1-tCfCIbfRL8AR0sdZD_w&oe=6915BBE9": imgUrl;
-    title = !title ? "Quercus virginiana" : title;
-    text = !text ? "Evergreen oak tree native to the Southeastern United States, known for its long life and strong wood." : text;
+    const [challenge, setChallenge] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchChallenge = async () => {
+            try {
+                const response = await api.get('/plantnet/getchallenge/');
+                setChallenge(response.data);
+            } catch(error) {
+                console.error("Error fetching challenge", error);
+            } finally {
+                setIsLoading(false);
+            };
+        };
+        fetchChallenge();
+    }, [])
+
+    if (!challenge || !challenge['scientific-name']) {
+        return (
+            <div className="container">
+                <h2>No Active Challenge</h2>
+                <p>Visit the "Get Plant" page to start a new challenge!</p>
+            </div>
+        );
+    }
+
+    const starRating = difficultyStars[challenge['dificulty']] || 'N/A';
 
     return (
         <div className="container">
             <Card
-             imgUrl={imgUrl} 
-             name = "Southern Live Oak"
-             rarity = "★★"
-             title={title} 
-             text={text} 
+             imgUrl={challenge['image-url']} 
+             name = {challenge['common-name']}
+             rarity={starRating}
+             title={challenge['scientific-name']}
+             text={challenge['description']}
              />
         </div>
     )

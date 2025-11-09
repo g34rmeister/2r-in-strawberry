@@ -3,12 +3,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.db import transaction
+from django.contrib.auth import get_user_model
+
 from .serializers import *
 from .models import *
-from django.contrib.auth import get_user_model
+
 User = get_user_model()
 
-####
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -38,7 +40,6 @@ def card_transaction(request, card_id, new_owner_id):
     serializer = CardSerializer(card)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-####
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -57,15 +58,15 @@ def get_library(request):
 @permission_classes([IsAuthenticated])
 def add_to_library(request):
     """
-    Copies an existing Card (by ID) and saves the copy
-    to the authenticated user's PlantLibrary.
-    """
+    Copies an existing Card (by ID) and saves the copy
+    to belong to the authenticated user. Updates user and group scores.
+    """
     entry_id = request.data.get('entry_id')
+    user = request.user # Get the user once
     
     if not entry_id:
         return Response({"error": "Missing 'entry_id' in request data."}, 
                         status=status.HTTP_400_BAD_REQUEST)
-    
     try:
         # 1. Get the existing entry data
         original_entry = Card.objects.get(pk=entry_id)
@@ -73,23 +74,48 @@ def add_to_library(request):
         return Response({"error": "Card not found."}, 
                         status=status.HTTP_404_NOT_FOUND)
 
-    # 3. Check if the entry already exists in the user's library
+    # 2. Check if the entry already exists in the user's library
     # The check must be based on the entry's unique properties (e.g., name and the user's library)
-    if Card.objects.filter(user=request.user, name=original_entry.name).exists():
+    if Card.objects.filter(user=user, name=original_entry.name).exists():
         return Response({"message": f"Plant '{original_entry.name}' is already in your library."}, 
                         status=status.HTTP_200_OK) 
 
-    # 4. Create a new Card by copying the data
-    # IMPORTANT: Do NOT copy the PK, and set the 'library' field correctly.
-    new_entry = Card.objects.create(
-        user=request.user,
-        name=original_entry.name,
-        image=original_entry.image,
-        location_found=original_entry.location_found,
-        description=original_entry.description,
-    )
-    
-    return Response({"message": f"'{new_entry.name}' added to library.", "id": new_entry.pk}, 
+    # Use a transaction to ensure all score updates are atomic (all succeed or all fail)
+    with transaction.atomic():
+        # 3. Create a new Card by copying the data
+        new_entry = Card.objects.create(
+            user=user,
+            name=original_entry.name,
+            image=original_entry.image,
+            location_found=original_entry.location_found,
+            description=original_entry.description,
+            difficulty=original_entry.difficulty,
+            date=original_entry.date
+        )
+
+        # 4. Update the user's global score
+        score_to_add = 0
+        if new_entry.difficulty == "EASY": # Use the value from Difficulty choices ('E', 'M', 'H')
+            score_to_add = 1
+        elif new_entry.difficulty == "MID":
+            score_to_add = 2
+        elif new_entry.difficulty == "HARD":
+            score_to_add = 3
+
+        user.score += score_to_add
+        user.save() # Save the updated user object
+
+        # 5. Update group scores
+        # Get all FriendGroupMembership records for the current user
+        memberships = FriendGroupMembership.objects.filter(member=user) 
+
+        for membership in memberships:
+            # Check if the card was 'found' *after* the user joined the group
+            if membership.join_date <= new_entry.date: # Check should typically be <= date, not < date
+                membership.score += score_to_add
+                membership.save() # Save the updated membership object
+
+    return Response({"message": f"'{new_entry.name}' added to collection.", "id": new_entry.pk}, 
                     status=status.HTTP_201_CREATED)
 
 

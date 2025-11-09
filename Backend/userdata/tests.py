@@ -83,7 +83,7 @@ class CardTransactionTests(APITestCase):
         response = self.client.post(url, format='json')
         
         # 2. Assertions
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         
         # Check that the owner is unchanged
         self.card.refresh_from_db()
@@ -127,14 +127,18 @@ class LibraryAPITest(TestCase):
             image="Images/sunflower.jpg",
             location_found="Park",
             description="Yellow flower",
-            user=self.user
+            user=self.user,
+            date="2025-11-07",
+            difficulty="HARD"
         )
         self.entry2 = Card.objects.create(
             name="Fern",
             image="Images/fern.jpg",
             location_found="Forest",
             description="Green plant",
-            user=self.user
+            user=self.user,
+            date="2024-12-20",
+            difficulty="EASY"
         )
 
         # 3. Entry to be 'added' (for POST test)
@@ -146,14 +150,16 @@ class LibraryAPITest(TestCase):
              image="Images/rose.jpg",
              location_found="Garden Center",
              description="Red flower with thorns",
-             user=self.other_user # Linked to another library
+             user=self.other_user,
+            date="2025-05-03",
+            difficulty="MID"
         )
 
     # library/
     def test_get_library_unauthenticated(self):
         """Unauthenticated users should not be able to access the library."""
         response = self.client.get(f"/api/userdata/library/")
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_library_authenticated(self):
         """Authenticated user should get their own plant library entries."""
@@ -351,9 +357,9 @@ class GlobalLeaderboardAPITests(TestCase):
         self.auth_client.force_authenticate(user=self.user_mid)
 
     def test_get_leaderboard_unauthenticated_fails(self):
-        """Unauthenticated users should be denied access (HTTP 403 FORBIDDEN)."""
+        """Unauthenticated users should be denied access (HTTP 401 UNAUTHED)."""
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_leaderboard_authenticated_success_and_order(self):
         """Authenticated users should successfully retrieve the leaderboard, ordered by score."""
