@@ -32,6 +32,8 @@ function StartChallenge() {
     return(
         <>
             <h2>Welcome, User!</h2>
+            <div style={{marginTop: '30vh'}}></div>
+            <h2>Welcome, {username || 'Guest'}!</h2>
             <p>Start a challenge?</p>
             <Droppable
                 label="Difficulty"
