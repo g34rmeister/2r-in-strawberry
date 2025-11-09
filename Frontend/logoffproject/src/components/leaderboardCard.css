@@ -51,17 +51,22 @@
     height: 40px;
     border-radius: 50%;
     background-color: #000000;
+    
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 1rem;
     font-weight: bold;
+    font-family: 'Happy Monkey';
 }
-
+.rank-circle span{
+    color:#ffffff;
+}
 
 .user-info {
     flex: 1;
     margin-right: 1rem;
+    font-family: 'Happy Monkey';
 }
 
 .user-name {
@@ -85,4 +90,5 @@
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
+    
 }
