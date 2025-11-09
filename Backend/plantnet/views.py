@@ -15,7 +15,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
-
+from rest_framework.decorators import api_view, permission_classes, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import AllowAny
 # Create your views here.
 plantnet_api = "https://my-api.plantnet.org/v2/"
     
@@ -113,18 +115,16 @@ class GetChallengeView(APIView):
             return Response({"error": "An internal error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 def getimageresults(request):
-    organ = request.POST.get('organs', 'auto')#tell plantnet to detect what we are sending
+    organ = request.data.get('organs', 'auto') 
     
-    if 'images' not in request.FILES:
+    if 'image' not in request.data:
         return JsonResponse({'error': 'Missing required image field: '}, status=400)
     
-    image_file = request.FILES['images']
-
+    image_file = request.data['image']
     rawImage = image_file.read()
-    filename=image_file.name
-    imagetype=image_file.content_type
+    filename = image_file.name
+    imagetype = image_file.content_type
 
-    #now that we have uncoded the image send request to plantnet
     indentify_params = {
         'api-key': settings.PLANTNET_API_KEY,
         'include-related-images': 'true',
@@ -136,25 +136,32 @@ def getimageresults(request):
     }
 
     files_payload = [
-        ('images', (filename, rawImage, imagetype))
+        ('images', (filename, rawImage))
     ]
 
-    id_url=f"{plantnet_api}identify/all"
+    id_url = f"{plantnet_api}identify/all"
 
-    #make the request
     try:
+        print("Sending request to PlantNet...") # Your print
         response = requests.post(
             id_url,
             params=indentify_params,
             data=form_data,
             files=files_payload,
         )
-
         response.raise_for_status()
-
-
         return response.json()
     except Exception as e:
+        # --- THIS IS THE NEW DEBUGGING CODE ---
+        print("--- PLANTNET VALIDATION FAILED ---")
+        print(f"Error: {e}")
+        
+        # This checks if the error has a response object, which will contain the server's message
+        if hasattr(e, 'response') and e.response is not None:
+            print(f"Status Code: {e.response.status_code}")
+            print(f"Response Body: {e.response.text}")
+        # -------------------------------------
+
         return JsonResponse({
             'status': 'error',
             'message': f'Error identifying from plantnet: {str(e)}'
@@ -192,36 +199,34 @@ def get_top_species(imageResults):
     return filterdResults
 
 #checks to see if the given plant picture matches the prompted species
-@csrf_exempt
-@require_POST
+@api_view(['POST'])                 # Replaces @require_POST
+@permission_classes([AllowAny])    # Makes it public (no auth needed)
+@parser_classes([MultiPartParser, FormParser]) # Teaches it to read FormData
 def validate_plant(request):
-    correctSpec=request.POST.get('correct-species', None)
-    if not correctSpec:
-        return JsonResponse({'status': 'error', 'message': 'incorrect fields provided'}, status=400)
-    results = getimageresults(request)
-    if isinstance(results, JsonResponse):
-        return results
-
-    top3=get_top_species(results)
+    # Now you must use request.data, not request.POST
+    correctSpec = request.data.get('correct-species', None)
     
-    #check if correct species is listed in top 3
-    for result in top3:
-        name=result.get('scientific-name')
-        print("Scientific name is:")
-        print(name)
-        print("correct name is:")
-        print(correctSpec)
-        if name==correctSpec:
-            response = {
-                'correct': True,
-            }
-            return JsonResponse(response, status=200, safe=False)
+    if not correctSpec:
+        # Use DRF's Response
+        return Response({'status': 'error', 'message': 'incorrect fields provided'}, status=400)
+    
+    # This function should still work if it reads from request.FILES
+    results = getimageresults(request) 
+    
+    if isinstance(results, JsonResponse):
+        # Convert the old JsonResponse to a new DRF Response
+        return Response(json.loads(results.content.decode('utf-8')), status=results.status_code)
 
-    #wasnt in top 3 so failed
-    response = {
-        'correct': False
-    }
-    return JsonResponse(response, status=200, safe=False)
+    top3 = get_top_species(results)
+    
+    for result in top3:
+        name = result.get('scientific-name')
+        print("name: " )
+        print(name)
+        if name == correctSpec:
+            return Response({'correct': True}, status=200)
+
+    return Response({'correct': False}, status=200)
 
 @csrf_exempt
 @require_POST
