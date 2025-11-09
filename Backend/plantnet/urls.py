@@ -19,5 +19,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('getrandomplant/', views.get_random_plant, name='get-random-plant')
+    path('getrandomplant/', views.get_random_plant, name='get-random-plant'),
+    path('identify/', views.identifyplant, name='identify'),
+    path('validateplant/', views.validate_plant, name='validateplant'),
 ]
