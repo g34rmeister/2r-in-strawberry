@@ -8,21 +8,48 @@ from .models import *
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
+####
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def card_transaction(request, card_id, new_owner_id):
+    """
+    Changes the owner of the current user's selected card to belong to a new user.
+    """
+    # 1. Fetch the card and ensure the requesting user is the current owner (optional but recommended)
+    try:
+        card = Card.objects.get(id=card_id, user=request.user)
+    except Card.DoesNotExist:
+        return Response({"detail": "Card not found or you are not the owner."},
+                        status=status.HTTP_404_NOT_FOUND)
+    
+    # 2. Fetch the new owner user object
+    try:
+        new_owner = User.objects.get(id=new_owner_id)
+    except User.DoesNotExist:
+        return Response({"detail": f"User with ID {new_owner_id} not found."},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    # 3. Perform the ownership change (Transaction logic)
+    card.user = new_owner
+    card.save()
+
+    # 4. Serialize the updated card to return the result
+    serializer = CardSerializer(card)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+####
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_library(request):
     """
     Returns the user's personal plant library entries.
     """
-    try:
-        user_library = PlantLibrary.objects.get(user=request.user)
-    except PlantLibrary.DoesNotExist:
-        return Response([], status=status.HTTP_200_OK)  # Return empty list if no library exists
-
     # Get all entries associated with that library
-    plant_entries = PlantLibraryEntry.objects.filter(library=user_library)
+    card_collection = Card.objects.filter(user=request.user)
 
-    serializer = PlantLibraryEntrySerializer(plant_entries, many=True)
+    serializer = CardSerializer(card_collection, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -30,7 +57,7 @@ def get_library(request):
 @permission_classes([IsAuthenticated])
 def add_to_library(request):
     """
-    Copies an existing PlantLibraryEntry (by ID) and saves the copy
+    Copies an existing Card (by ID) and saves the copy
     to the authenticated user's PlantLibrary.
     """
     entry_id = request.data.get('entry_id')
@@ -41,29 +68,21 @@ def add_to_library(request):
     
     try:
         # 1. Get the existing entry data
-        original_entry = PlantLibraryEntry.objects.get(pk=entry_id)
-    except PlantLibraryEntry.DoesNotExist:
-        return Response({"error": "PlantLibraryEntry not found."}, 
+        original_entry = Card.objects.get(pk=entry_id)
+    except Card.DoesNotExist:
+        return Response({"error": "Card not found."}, 
                         status=status.HTTP_404_NOT_FOUND)
-
-    # 2. Find the authenticated user's PlantLibrary instance
-    # This must exist based on your test setup: self.library = PlantLibrary.objects.create(user=self.user)
-    try:
-        user_library = PlantLibrary.objects.get(user=request.user)
-    except PlantLibrary.DoesNotExist:
-        return Response({"error": "User's PlantLibrary not found."}, 
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # 3. Check if the entry already exists in the user's library
     # The check must be based on the entry's unique properties (e.g., name and the user's library)
-    if PlantLibraryEntry.objects.filter(library=user_library, name=original_entry.name).exists():
+    if Card.objects.filter(user=request.user, name=original_entry.name).exists():
         return Response({"message": f"Plant '{original_entry.name}' is already in your library."}, 
                         status=status.HTTP_200_OK) 
 
-    # 4. Create a new PlantLibraryEntry by copying the data
+    # 4. Create a new Card by copying the data
     # IMPORTANT: Do NOT copy the PK, and set the 'library' field correctly.
-    new_entry = PlantLibraryEntry.objects.create(
-        library=user_library,
+    new_entry = Card.objects.create(
+        user=request.user,
         name=original_entry.name,
         image=original_entry.image,
         location_found=original_entry.location_found,

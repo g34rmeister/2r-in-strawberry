@@ -5,6 +5,7 @@ urlpatterns = [
     # --- Library Management ---
     path('library/', views.get_library, name='get_library'),
     path('add-to-library/', views.add_to_library, name='add_to_library'),
+    path('cards/<int:card_id>/transfer/<int:new_owner_id>/', views.card_transaction, name='card-transaction'),
     
     # --- Group Management ---
     path('<int:friendgroup_id>/', views.get_group, name='get_group'),

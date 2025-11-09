@@ -14,25 +14,14 @@ class CustomUser(AbstractUser):
         return self.username
 
 
-class PlantLibrary(models.Model):
-    # This is correct and points to CustomUser
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, related_name='plant_library') 
-    
-    def __str__(self):
-        return f"{self.user}'s Library"
-
-
-class PlantLibraryEntry(models.Model):
+# this doubles as the card info as well
+class Card(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, related_name='card_owner')
     name = models.CharField(max_length=200)
     image = models.ImageField(upload_to="Images/")
     location_found = models.CharField(max_length=100)
     description = models.CharField(max_length=500)
-    library = models.ForeignKey(
-        PlantLibrary,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
+    difficulty = models.CharField(max_length=100, default="Hard")
 
     def __str__(self):
         return f"{self.name}"

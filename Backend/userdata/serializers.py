@@ -4,10 +4,10 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 # --- Base Serializers ---
-class PlantLibraryEntrySerializer(serializers.ModelSerializer):
+class CardSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PlantLibraryEntry
-        fields = ['id', 'name', 'image', 'location_found', 'description']
+        model = Card
+        fields = ['id', 'name', 'image', 'location_found', 'description', 'user']
         read_only_fields = ['id']
 
 

@@ -1,49 +1,152 @@
 from unittest.mock import patch
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from django.urls import resolve, reverse
+from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
-from friendship.models import Friend, Follow, Block, FriendshipRequest
+from rest_framework.test import APITestCase
 
 from .models import *
 
 User = get_user_model()
+
+class CardTransactionTests(APITestCase):
+    """
+    Tests for the card_transaction view which handles card ownership transfer.
+    """
+
+    def setUp(self):
+        # 1. Setup initial users
+        self.owner = User.objects.create_user(username='owner', password='testpassword')
+        self.new_owner = User.objects.create_user(username='new_owner', password='testpassword')
+        self.unrelated_user = User.objects.create_user(username='unrelated', password='testpassword')
+        
+        # 2. Setup the card
+        self.card = Card.objects.create(name='Test Card', user=self.owner)
+        
+        # cards/<int:card_id>/transfer/<int:new_owner_id>/
+        # 3. Define the URL pattern
+        self.base_url_name = 'card-transaction' 
+
+    def get_url(self, card_id, new_owner_id):
+        """Helper to reverse the URL with required arguments."""
+        # You may need to replace 'card-transaction' with the actual name defined in your urls.py
+        return reverse(self.base_url_name, args=[card_id, new_owner_id])
+
+
+    # --- Test Scenarios ---
+
+    def test_successful_card_transfer_by_owner(self):
+        """Ensure an authenticated owner can successfully transfer ownership."""
+        
+        # 1. Authenticate as the current owner
+        self.client.force_authenticate(user=self.owner)
+        
+        # 2. Perform the POST request
+        url = self.get_url(self.card.id, self.new_owner.id)
+        response = self.client.post(url, format='json')
+        
+        # 3. Assertions
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Refresh the model instance from the database
+        self.card.refresh_from_db()
+        
+        # Check that the owner has actually changed
+        self.assertEqual(self.card.user, self.new_owner)
+
+    def test_transfer_failure_by_unrelated_user(self):
+        """Ensure a user who does not own the card cannot transfer it."""
+        
+        # 1. Authenticate as an unrelated user
+        self.client.force_authenticate(user=self.unrelated_user)
+        
+        # 2. Perform the POST request
+        url = self.get_url(self.card.id, self.new_owner.id)
+        response = self.client.post(url, format='json')
+        
+        # 3. Assertions
+        # The corrected view should return 404 Not Found (or 403 Forbidden)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND) 
+        
+        # Check that the owner is unchanged
+        self.card.refresh_from_db()
+        self.assertEqual(self.card.user, self.owner)
+
+    def test_transfer_failure_unauthenticated(self):
+        """Ensure unauthenticated access is denied (handled by IsAuthenticated)."""
+        
+        # Do not authenticate the client
+        
+        # 1. Perform the POST request
+        url = self.get_url(self.card.id, self.new_owner.id)
+        response = self.client.post(url, format='json')
+        
+        # 2. Assertions
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        # Check that the owner is unchanged
+        self.card.refresh_from_db()
+        self.assertEqual(self.card.user, self.owner)
+
+    def test_transfer_failure_card_not_exists(self):
+        """Ensure a 404 is returned if the card does not exist."""
+        
+        self.client.force_authenticate(user=self.owner)
+        
+        # 1. Perform the POST request with an invalid card ID (e.g., 9999)
+        url = self.get_url(9999, self.new_owner.id)
+        response = self.client.post(url, format='json')
+        
+        # 2. Assertions
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_transfer_failure_new_owner_not_exists(self):
+        """Ensure a 400 is returned if the new owner user does not exist."""
+        
+        self.client.force_authenticate(user=self.owner)
+        
+        # 1. Perform the POST request with an invalid new_owner ID (e.g., 9999)
+        url = self.get_url(self.card.id, 9999)
+        response = self.client.post(url, format='json')
+        
+        # 2. Assertions
+        # The corrected view returns 400 for a bad new owner ID
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 class LibraryAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
         # 1. User for the current test
         self.user = User.objects.create_user(username='botanist', password='forest123')
-        self.library = PlantLibrary.objects.create(user=self.user)
 
         # 2. Entries already in the user's library (for GET test)
-        self.entry1 = PlantLibraryEntry.objects.create(
+        self.entry1 = Card.objects.create(
             name="Sunflower",
             image="Images/sunflower.jpg",
             location_found="Park",
             description="Yellow flower",
-            library=self.library
+            user=self.user
         )
-        self.entry2 = PlantLibraryEntry.objects.create(
+        self.entry2 = Card.objects.create(
             name="Fern",
             image="Images/fern.jpg",
             location_found="Forest",
             description="Green plant",
-            library=self.library
+            user=self.user
         )
 
         # 3. Entry to be 'added' (for POST test)
         self.other_user = User.objects.create_user(username='gardener', password='tree456')
-        self.other_library = PlantLibrary.objects.create(user=self.other_user)
         
         # This is the entry that was missing and caused the error
-        self.entry_to_add = PlantLibraryEntry.objects.create( 
+        self.entry_to_add = Card.objects.create( 
              name="Rose",
              image="Images/rose.jpg",
              location_found="Garden Center",
              description="Red flower with thorns",
-             library=self.other_library # Linked to another library
+             user=self.other_user # Linked to another library
         )
 
     # library/
@@ -63,7 +166,7 @@ class LibraryAPITest(TestCase):
     
     # library/add-to-library/
     def test_add_to_library_success(self):
-        """Should successfully add a new PlantLibraryEntry to the user's library."""
+        """Should successfully add a new Card to the user's library."""
         # 1. Use self.user for authentication
         self.client.force_authenticate(user=self.user)
         url = '/api/userdata/add-to-library/'
@@ -72,7 +175,7 @@ class LibraryAPITest(TestCase):
         data = {'entry_id': self.entry_to_add.pk} 
         
         # 3. Check the initial state (should not exist in *this* user's library yet)
-        initial_count = PlantLibraryEntry.objects.filter(library=self.library).count()
+        initial_count = Card.objects.filter(user=self.user).count()
         self.assertEqual(initial_count, 2)
         
         response = self.client.post(url, data, format='json')
@@ -81,11 +184,11 @@ class LibraryAPITest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         
         # Check that a new entry was created and is linked to the correct library
-        final_count = PlantLibraryEntry.objects.filter(library=self.library).count()
+        final_count = Card.objects.filter(user=self.user).count()
         self.assertEqual(final_count, initial_count + 1)
         
         # Optionally, check that the new entry has the expected name
-        new_entry = PlantLibraryEntry.objects.get(library=self.library, name="Rose")
+        new_entry = Card.objects.get(user=self.user, name="Rose")
         self.assertEqual(new_entry.name, "Rose")
 
 
